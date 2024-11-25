@@ -100,7 +100,7 @@ const RegisterForm = ({ user }) => {
     } else {
       await registerUser(userData);
     }
-    console.warn('go check it out!');
+    console.warn(userData);
   };
 
   return (
