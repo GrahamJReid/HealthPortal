@@ -42,3 +42,4 @@ yarn-error.log*
 .firebase/
 
 .awsCred.js
+.UserPool.js

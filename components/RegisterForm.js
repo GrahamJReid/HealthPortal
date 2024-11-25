@@ -1,22 +1,26 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable react/require-default-props */
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { Button, Form } from 'react-bootstrap';
 import Head from 'next/head';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import PropTypes from 'prop-types';
+// eslint-disable-next-line no-unused-vars
+import { AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
+// Cognito User Pool
 import { registerUser } from '../utils/auth';
-import { clientCredentials } from '../utils/client';
 import awsCredentials from '../.awsCred';
+import UserPool from '../.UserPool';
 
 const RegisterForm = ({ user }) => {
   const [formData, setFormData] = useState({
     username: user ? user.username : '',
     email: user ? user.email : '',
-    image: null, // Change from '' to null
-    uid: user.uid,
+    password: '',
+    image: null,
+    uid: user?.uid || '',
   });
+
   useEffect(() => {
     if (user) {
       setFormData({
@@ -48,7 +52,7 @@ const RegisterForm = ({ user }) => {
 
   const uploadImageToS3 = async (file) => {
     const s3 = new S3Client({
-      region: awsCredentials.awsRegion, // Replace with your AWS region
+      region: awsCredentials.awsRegion,
       credentials: {
         accessKeyId: awsCredentials.awsAccessKeyId,
         secretAccessKey: awsCredentials.awsSecretAccessKey,
@@ -63,6 +67,7 @@ const RegisterForm = ({ user }) => {
 
     try {
       const command = new PutObjectCommand(params);
+      // eslint-disable-next-line no-unused-vars
       const response = await s3.send(command);
       return `https://${params.Bucket}.s3.amazonaws.com/${params.Key}`;
     } catch (error) {
@@ -74,33 +79,59 @@ const RegisterForm = ({ user }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    let updatedImageUrl = formData.image_url;
+    // Step 1: Signup with AWS Cognito
+    UserPool.signUp(formData.email, formData.password, [], null, async (err, data) => {
+      if (err) {
+        console.error('Error signing up:', err);
 
-    if (formData.image) {
-      const awsImageUrl = await uploadImageToS3(formData.image);
-
-      if (awsImageUrl) {
-        updatedImageUrl = awsImageUrl;
+        // Handle Cognito-specific errors
+        if (err.code === 'UsernameExistsException') {
+          window.alert('Email already exists. Please use a different email.');
+        } else if (err.code === 'InvalidPasswordException') {
+          if (err.message.includes('symbol')) {
+            window.alert('Password must contain symbol characters.');
+          } else if (err.message.includes('uppercase')) {
+            window.alert('Password must contain uppercase characters.');
+          } else if (err.message.includes('numeric')) {
+            window.alert('Password must contain numeric characters.');
+          } else {
+            window.alert('Invalid password. Please check the password policy.');
+          }
+        } else {
+          window.alert(`Error: ${err.message}`);
+        }
+        return;
       }
-    }
 
-    const userData = {
-      username: formData.username,
-      email: formData.email,
-      image_url: updatedImageUrl,
-      uid: user.uid,
-      role: 'patient',
-      admin: false,
-    };
+      console.warn('Cognito Signup successful:', data);
 
-    if (user.username) {
-      userData.id = user.id;
-      // eslint-disable-next-line no-undef
-      await updateUser(userData);
-    } else {
+      // Step 2: Proceed with additional form handling
+      let updatedImageUrl = formData.image_url;
+
+      if (formData.image) {
+        const awsImageUrl = await uploadImageToS3(formData.image);
+
+        if (awsImageUrl) {
+          updatedImageUrl = awsImageUrl;
+        }
+      }
+
+      const userData = {
+        username: formData.username,
+        email: formData.email,
+        image_url: updatedImageUrl,
+        uid: data.userSub, // Cognito's unique user ID
+        role: 'patient',
+        admin: false,
+      };
+
+      // Register the user in your database
       await registerUser(userData);
-    }
-    console.warn(userData);
+      console.warn('User registered:', userData);
+
+      // Redirect or provide success feedback
+      window.alert('Signup successful!');
+    });
   };
 
   return (
@@ -122,9 +153,21 @@ const RegisterForm = ({ user }) => {
         <Form.Group className="mb-3">
           <Form.Label>Email</Form.Label>
           <Form.Control
+            type="email"
             name="email"
             required
             value={formData.email}
+            onChange={handleChange}
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Password</Form.Label>
+          <Form.Control
+            type="password"
+            name="password"
+            required
+            value={formData.password}
             onChange={handleChange}
           />
         </Form.Group>
@@ -134,16 +177,12 @@ const RegisterForm = ({ user }) => {
           <Form.Control
             type="file"
             name="image"
-            {...user ? {} : { required: true }}
             onChange={handleFileChange}
           />
         </Form.Group>
 
-        <Button
-          variant="primary"
-          type="submit"
-        >
-          {user.username ? 'Update' : 'Register'}
+        <Button variant="primary" type="submit">
+          Register
         </Button>
       </Form>
     </>
@@ -152,12 +191,11 @@ const RegisterForm = ({ user }) => {
 
 RegisterForm.propTypes = {
   user: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    uid: PropTypes.string.isRequired,
-    email: PropTypes.string.isRequired,
-    username: PropTypes.string.isRequired,
+    id: PropTypes.number,
+    uid: PropTypes.string,
+    email: PropTypes.string,
+    username: PropTypes.string,
     image_url: PropTypes.string,
-
   }),
 };
 
