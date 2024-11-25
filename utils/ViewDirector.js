@@ -1,29 +1,22 @@
 import PropTypes from 'prop-types';
 import { useAuth } from './context/authContext';
-import Loading from '../components/Loading';
-import Signin from '../components/Signin';
 import NavBar from '../components/NavBar';
-import RegisterForm from '../components/RegisterForm';
 
 const ViewDirectorBasedOnUserAuthStatus = ({ component: Component, pageProps }) => {
-  const { user, userLoading, updateUser } = useAuth();
+  // eslint-disable-next-line no-unused-vars
+  const { user, userLoading } = useAuth();
 
-  // if user state is null, then show loader
-  if (userLoading) {
-    return <Loading />;
-  }
+  // Show loading screen while user authentication state is being determined
 
-  // what the user should see if they are logged in
-  if (user) {
-    return (
-      <>
-        <NavBar /> {/* NavBar only visible if user is logged in and is in every view */}
-        <div className="container">{'valid' in user ? <RegisterForm user={user} updateUser={updateUser} /> : <Component {...pageProps} />}</div>
-      </>
-    );
-  }
-
-  return <Signin />;
+  // If the user is authenticated, render the NavBar and the current page component
+  return (
+    <>
+      <NavBar /> {/* Always show the NavBar */}
+      <main style={{ marginTop: '4rem' }}> {/* Add spacing to account for the fixed NavBar */}
+        <Component {...pageProps} /> {/* Dynamically render the current page */}
+      </main>
+    </>
+  );
 };
 
 export default ViewDirectorBasedOnUserAuthStatus;
