@@ -40,6 +40,7 @@ const Login = () => {
 
             const username = email; // Extract username from email
             // router.push(`/landing/${username}`);
+            router.push('/User/UserHomePage');
           }
         });
       },
