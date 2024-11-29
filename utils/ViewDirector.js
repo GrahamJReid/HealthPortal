@@ -1,14 +1,13 @@
 import PropTypes from 'prop-types';
-import { useAuth } from './context/authContext';
+import { useAuth } from './userContext'; // Import the Auth context
 import NavBar from '../components/NavBar';
 
+// Component to render the NavBar and the current page component
 const ViewDirectorBasedOnUserAuthStatus = ({ component: Component, pageProps }) => {
   // eslint-disable-next-line no-unused-vars
-  const { user, userLoading } = useAuth();
+  const { user } = useAuth(); // Access global user state from context
 
-  // Show loading screen while user authentication state is being determined
-
-  // If the user is authenticated, render the NavBar and the current page component
+  // Always render the NavBar and the current page component
   return (
     <>
       <NavBar /> {/* Always show the NavBar */}
@@ -19,9 +18,9 @@ const ViewDirectorBasedOnUserAuthStatus = ({ component: Component, pageProps }) 
   );
 };
 
-export default ViewDirectorBasedOnUserAuthStatus;
-
 ViewDirectorBasedOnUserAuthStatus.propTypes = {
   component: PropTypes.func.isRequired,
   pageProps: PropTypes.oneOfType([PropTypes.object]).isRequired,
 };
+
+export default ViewDirectorBasedOnUserAuthStatus;
