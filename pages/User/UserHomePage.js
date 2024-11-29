@@ -1,5 +1,7 @@
+/* eslint-disable react/button-has-type */
 import React from 'react';
 import { useAuth } from '../../utils/userContext';
+import SignOut from '../../components/SignOut';
 
 export default function UserHomePage() {
   const { user } = useAuth(); // Destructure the user object from the context
@@ -18,6 +20,7 @@ export default function UserHomePage() {
     <div>
       <h1>User Home Page</h1>
       <h2>Welcome, {user.username}!</h2>
+      <SignOut />
     </div>
   );
 }
