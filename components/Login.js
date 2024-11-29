@@ -50,6 +50,10 @@ const Login = () => {
             // Set the global user context
             setUser(userData);
 
+            // Store email and user data in sessionStorage
+            sessionStorage.setItem('userEmail', emailAttribute);
+            sessionStorage.setItem('user', JSON.stringify(userData));
+
             // Navigate to the User Home Page
             console.warn('Navigating to /User/UserHomePage');
             router.push('/User/UserHomePage');
