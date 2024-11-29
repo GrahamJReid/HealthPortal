@@ -1,14 +1,18 @@
-/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable no-unused-vars */
+/* eslint-disable import/no-extraneous-dependencies */
 import React, { useState } from 'react';
 import { CognitoUser, AuthenticationDetails } from 'amazon-cognito-identity-js';
 import { useRouter } from 'next/router';
+import { useAuth } from '../utils/userContext'; // Import your Auth context
 import UserPool from '../.UserPool';
+import { getUserByEmail } from '../API/userData';
+
+// Replace with your API utility file path
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userAttributes, setUserAttributes] = useState(null);
+  const { setUser } = useAuth(); // Get the setUser function from Auth context
   const router = useRouter();
 
   const handleLogin = async (event) => {
@@ -18,6 +22,7 @@ const Login = () => {
       Username: email,
       Pool: UserPool,
     });
+
     const authDetails = new AuthenticationDetails({
       Username: email,
       Password: password,
@@ -27,27 +32,35 @@ const Login = () => {
       onSuccess: (session) => {
         console.warn('Login successful');
 
-        // Fetch user attributes after successful authentication
-        user.getUserAttributes((err, attributes) => {
+        // Fetch user attributes
+        user.getUserAttributes(async (err, attributes) => {
           if (err) {
             console.error('Error fetching user attributes:', err);
-          } else {
-            const userData = {};
-            attributes.forEach((attribute) => {
-              userData[attribute.getName()] = attribute.getValue();
-            });
-            setUserAttributes(userData);
+            return;
+          }
 
-            const username = email; // Extract username from email
-            // router.push(`/landing/${username}`);
+          // Extract the email attribute
+          const emailAttribute = attributes.find((attr) => attr.getName() === 'email').getValue();
+
+          try {
+            // Fetch the user from Django
+            const userData = await getUserByEmail(emailAttribute);
+            console.warn(userData);
+
+            // Set the global user context
+            setUser(userData);
+
+            // Navigate to the User Home Page
+            console.warn('Navigating to /User/UserHomePage');
             router.push('/User/UserHomePage');
+          } catch (fetchError) {
+            console.error('Error fetching user from Django:', fetchError);
           }
         });
       },
       onFailure: (err) => {
         console.error('Login error:', err);
         if (err.code === 'NotAuthorizedException') {
-          // Display alert for incorrect username or password
           window.alert('Incorrect username or password. Please try again.');
         }
       },
@@ -56,8 +69,6 @@ const Login = () => {
       },
     });
   };
-
-  console.warn('These are the user attributes:', userAttributes);
 
   return (
     <div className="login-container">
