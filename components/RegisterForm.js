@@ -1,6 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable react/require-default-props */
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import { Button, Form } from 'react-bootstrap';
 import Head from 'next/head';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -11,8 +12,11 @@ import { AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
 import { registerUser } from '../utils/auth';
 import awsCredentials from '../.awsCred';
 import UserPool from '../.UserPool';
+import { useAuth } from '../utils/userContext'; // Import the Auth context
 
 const RegisterForm = ({ user }) => {
+  const { setUser } = useAuth();
+  const router = useRouter(); // Access the setUser function from the context
   const [formData, setFormData] = useState({
     username: user ? user.username : '',
     email: user ? user.email : '',
@@ -129,8 +133,16 @@ const RegisterForm = ({ user }) => {
       await registerUser(userData);
       console.warn('User registered:', userData);
 
+      // Step 3: Store user data in sessionStorage
+      sessionStorage.setItem('user', JSON.stringify(userData)); // Save to sessionStorage
+      sessionStorage.setItem('userEmail', formData.email); // Optionally store the email
+
+      // Step 4: Set user in global state (context)
+      setUser(userData);
+
       // Redirect or provide success feedback
       window.alert('Signup successful!');
+      router.push('/User/UserHomePage');
     });
   };
 

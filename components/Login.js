@@ -45,14 +45,16 @@ const Login = () => {
           try {
             // Fetch the user from Django
             const userData = await getUserByEmail(emailAttribute);
-            console.warn(userData);
+
+            // Ensure that userData is an object, not an array
+            const userObject = Array.isArray(userData) ? userData[0] : userData;
 
             // Set the global user context
-            setUser(userData);
+            setUser(userObject);
 
             // Store email and user data in sessionStorage
             sessionStorage.setItem('userEmail', emailAttribute);
-            sessionStorage.setItem('user', JSON.stringify(userData));
+            sessionStorage.setItem('user', JSON.stringify(userObject));
 
             // Navigate to the User Home Page
             console.warn('Navigating to /User/UserHomePage');

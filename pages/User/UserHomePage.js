@@ -17,7 +17,7 @@ export default function UserHomePage() {
   return (
     <div>
       <h1>User Home Page</h1>
-      <h2>Welcome, {user[0].username}!</h2>
+      <h2>Welcome, {user.username}!</h2>
     </div>
   );
 }
