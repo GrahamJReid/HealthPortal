@@ -57,8 +57,8 @@ const Login = () => {
             sessionStorage.setItem('user', JSON.stringify(userObject));
 
             // Navigate to the User Home Page
-            console.warn('Navigating to /User/UserHomePage');
-            router.push('/User/UserHomePage');
+            console.warn('Navigating to /User/UserProfilePage');
+            router.push('/User/UserProfilePage');
           } catch (fetchError) {
             console.error('Error fetching user from Django:', fetchError);
           }

@@ -142,7 +142,7 @@ const RegisterForm = ({ user }) => {
 
       // Redirect or provide success feedback
       window.alert('Signup successful!');
-      router.push('/User/UserHomePage');
+      router.push('/User/UserProfilePage');
     });
   };
 
