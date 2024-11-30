@@ -10,7 +10,7 @@ const ViewDirectorBasedOnUserAuthStatus = ({ component: Component, pageProps }) 
   // Always render the NavBar and the current page component
   return (
     <>
-      <NavBar /> {/* Always show the NavBar */}
+      {user && <NavBar />}
       <main style={{ marginTop: '4rem' }}> {/* Add spacing to account for the fixed NavBar */}
         <Component {...pageProps} /> {/* Dynamically render the current page */}
       </main>
