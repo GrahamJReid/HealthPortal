@@ -1,14 +1,31 @@
-/* eslint-disable react/button-has-type */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 import { useAuth } from '../../utils/userContext';
+import PatientIntakeForm from '../../components/Forms/PatientIntakeForm';
+import { getPatientIntakeForm } from '../../API/patientIntakeFormData';
 
 export default function FormsHomePage() {
-  const { user } = useAuth(); // Destructure the user object from the context
-  console.warn('Logged-in user:', user);
+  const { user } = useAuth();
+  const [existingForm, setExistingForm] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Guard against `user` being null or undefined
-  if (!user) {
+  useEffect(() => {
+    if (user) {
+      // Fetch the existing form for the logged-in user
+      getPatientIntakeForm(user.id)
+        .then((form) => {
+          setExistingForm(form); // Save the form data if it exists
+        })
+        .catch((error) => {
+          console.error('Error fetching patient intake form:', error);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [user]);
+
+  if (!user || loading) {
     return (
       <div>
         <h1>Loading...</h1>
@@ -21,20 +38,18 @@ export default function FormsHomePage() {
       <h1>Forms Home Page</h1>
       <h2>Welcome, {user.username}!</h2>
       <div>
-        <Tabs
-          defaultActiveKey="timelines"
-          id="uncontrolled-tab-example"
-        >
+        <Tabs defaultActiveKey="timelines" id="uncontrolled-tab-example">
           <Tab eventKey="intakeform" title="Intake Form">
-            <div>Patient Intake form</div>
-
+            <div>
+              {/* Pass the existing form data to the PatientIntakeForm */}
+              <PatientIntakeForm obj={existingForm} />
+            </div>
           </Tab>
           <Tab eventKey="allergiesform" title="Allergies Form">
-            <div>allergies form</div>
+            <div>Allergies form</div>
           </Tab>
           <Tab eventKey="threads" title="Threads">
             <div>Threads</div>
-
           </Tab>
         </Tabs>
       </div>
