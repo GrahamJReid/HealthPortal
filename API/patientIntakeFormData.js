@@ -1,19 +1,21 @@
 /* eslint-disable implicit-arrow-linebreak */
 import { clientCredentials } from '../utils/client';
 
-const getPatientIntakeForm = (id) => new Promise((resolve, reject) => {
-  fetch(`${clientCredentials.databaseURL}/patientintakeform`, {
+const getPatientIntakeForm = (patientId) => new Promise((resolve, reject) => {
+  fetch(`${clientCredentials.databaseURL}/api/getpatientintakeform/${patientId}/`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
   })
-    .then((response) => response.json())
-    .then((data) => {
-      const patientIntakeForm = Object.values(data).filter((item) => item.patient.id === id);
-      resolve(patientIntakeForm[0]);
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      return response.json();
     })
-    .catch(reject);
+    .then((data) => resolve(data))
+    .catch((error) => reject(error));
 });
 
 const createPatientIntakeForm = (payload) => new Promise((resolve, reject) => {
