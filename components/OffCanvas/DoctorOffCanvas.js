@@ -9,12 +9,12 @@ import Offcanvas from 'react-bootstrap/Offcanvas';
 import PropTypes from 'prop-types';
 import Link from 'next/link';
 
-import { useAuth } from '../utils/userContext';
+import { useAuth } from '../../utils/userContext';
 
-import { getSingleUser } from '../API/userData';
-import SignOut from './SignOut';
+import { getSingleUser } from '../../API/userData';
+import SignOut from '../SignOut';
 
-function OffCanvas({ name, ...props }) {
+function DoctorOffCanvas({ name, ...props }) {
   const [show, setShow] = useState(false);
   const [singleUser, setSingleUser] = useState({});
   const { user } = useAuth();
@@ -62,21 +62,7 @@ function OffCanvas({ name, ...props }) {
                 <li className="NavLink" id="NavLink3">
                   <Link passHref href="/Forms/FormsHomePage">
                     <a className="NavLink">
-                      Forms
-                    </a>
-                  </Link>
-                </li>
-                <li className="NavLink" id="NavLink4">
-                  <Link passHref href="/Medications/MedicationsHomePage">
-                    <a className="NavLink">
-                      Medications
-                    </a>
-                  </Link>
-                </li>
-                <li className="NavLink" id="NavLink5">
-                  <Link passHref href="/VisitNotes/VisitNotesHomePage/">
-                    <a className="NavLink">
-                      Visit Notes
+                      Patients
                     </a>
                   </Link>
                 </li>
@@ -98,9 +84,9 @@ function OffCanvas({ name, ...props }) {
   );
 }
 
-export default OffCanvas;
+export default DoctorOffCanvas;
 
-OffCanvas.propTypes = {
+DoctorOffCanvas.propTypes = {
 
   name: PropTypes.string.isRequired,
 
