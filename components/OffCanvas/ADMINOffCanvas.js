@@ -60,7 +60,7 @@ function ADMINOffCanvas({ name, ...props }) {
                   </Link>
                 </li>
                 <li className="NavLink" id="NavLink3">
-                  <Link passHref href="/Forms/FormsHomePage">
+                  <Link passHref href="/Admin/DoctorDesignation">
                     <a className="NavLink">
                       Doctor Designation
                     </a>
