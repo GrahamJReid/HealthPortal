@@ -49,7 +49,7 @@ export default function DoctorTablePage() {
 
   // Navigate to the individualized page for a doctor
   const handleRowClick = (doctorId) => {
-    router.push(`/doctors/${doctorId}/assign-patients`); // Adjust route as needed
+    router.push(`/Admin/DoctorAssignment/${doctorId}/`); // Adjust route as needed
   };
 
   // Guard clause for `user` being null
