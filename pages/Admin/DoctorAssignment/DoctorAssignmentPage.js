@@ -7,7 +7,7 @@ import { useRouter } from 'next/router'; // For navigation
 import { useAuth } from '../../../utils/userContext';
 import { getOtherUsers } from '../../../API/userData'; // Update as needed for fetching users
 
-export default function DoctorTablePage() {
+export default function DoctorAssignmentPage() {
   const { user } = useAuth(); // Logged-in user context
   const [doctors, setDoctors] = useState([]); // Doctors to display
   const [searchQuery, setSearchQuery] = useState(''); // Search query state

@@ -31,7 +31,7 @@ export default function AssignPatientsPage() {
     try {
       const patientData = await getUsersWithSearch(id, searchQuery); // Fetch patients, excluding the doctor
       // Filter only users with the role 'patient'
-      const filteredPatients = patientData.filter((user) => user.role === 'patient');
+      const filteredPatients = patientData.filter((user) => user.role === 'patient' && user.admin === false);
       setPatients(filteredPatients);
     } catch (error) {
       console.error('Error fetching patients:', error);
