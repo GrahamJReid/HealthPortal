@@ -60,7 +60,7 @@ function DoctorOffCanvas({ name, ...props }) {
                   </Link>
                 </li>
                 <li className="NavLink" id="NavLink3">
-                  <Link passHref href="/Forms/FormsHomePage">
+                  <Link passHref href="/Doctor/Patients/PatientsPage">
                     <a className="NavLink">
                       Patients
                     </a>
