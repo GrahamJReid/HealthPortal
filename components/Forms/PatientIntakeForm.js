@@ -77,11 +77,12 @@ function PatientIntakeForm({ obj }) {
       } else {
         await createPatientIntakeForm(patientIntakeData);
       }
-      window.location.reload(true); // Refresh page after submission
+      window.warn('changes complete'); // Refresh page after submission
     } catch (error) {
       console.error('Error saving patient intake form:', error);
     } finally {
       setLoading(false);
+      window.alert('changes complete');
     }
   };
 

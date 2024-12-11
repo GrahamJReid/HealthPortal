@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Table from 'react-bootstrap/Table';
 import { getSingleUser, getUsersWithSearch } from '../../../API/userData';
+import { createDoctorPatient, deleteDoctorPatient, getDoctorPatientByDoctorId } from '../../../API/doctorpatientData';
 
 export default function AssignPatientsPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function AssignPatientsPage() {
 
   const [doctor, setDoctor] = useState(null); // Doctor's data
   const [patients, setPatients] = useState([]); // All patients to display
+  const [assignments, setAssignments] = useState({}); // Store patient assignments
   const [searchQuery, setSearchQuery] = useState(''); // Search query state
   const [loading, setLoading] = useState(true); // Loading state for better UX
 
@@ -26,12 +28,10 @@ export default function AssignPatientsPage() {
   };
 
   // Fetch all patients
-  // Fetch all patients
   const fetchPatients = async () => {
     try {
       const patientData = await getUsersWithSearch(id, searchQuery); // Fetch patients, excluding the doctor
-      // Filter only users with the role 'patient'
-      const filteredPatients = patientData.filter((user) => user.role === 'patient');
+      const filteredPatients = patientData.filter((user) => user.role === 'patient' && user.admin === false);
       setPatients(filteredPatients);
     } catch (error) {
       console.error('Error fetching patients:', error);
@@ -40,11 +40,22 @@ export default function AssignPatientsPage() {
     }
   };
 
-  // Fetch doctor and patients on component load
+  // Fetch assignments for the doctor
+  const fetchAssignments = async () => {
+    try {
+      const assignmentsMap = await getDoctorPatientByDoctorId(id);
+      setAssignments(assignmentsMap);
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+    }
+  };
+
+  // Fetch data on component load
   useEffect(() => {
     if (id) {
       fetchDoctor();
       fetchPatients();
+      fetchAssignments();
     }
   }, [id]);
 
@@ -58,11 +69,41 @@ export default function AssignPatientsPage() {
     setSearchQuery(e.target.value);
   };
 
-  // Simulate assigning a patient to the doctor
+  // Assign patient to doctor
   const assignPatient = (patient) => {
-    console.warn(
-      `Patient object between doctor.id: ${doctor.id}, doctor.username: ${doctor.username} and patient.id: ${patient.id}, patient.username: ${patient.username} generated`,
-    );
+    const payload = {
+      doctor: doctor.id,
+      patient: patient.id,
+    };
+
+    createDoctorPatient(payload)
+      .then((data) => {
+        window.alert(`Assignment created successfully! Doctor: ${data.doctor.username}, Patient: ${data.patient.username}`);
+        setAssignments((prev) => ({ ...prev, [patient.id]: data.id })); // Update assignments
+      })
+      .catch((error) => {
+        console.error('Failed to assign patient:', error);
+        window.alert('Failed to create assignment. Please try again.');
+      });
+  };
+
+  // Remove patient assignment
+  const removeAssignment = (patient) => {
+    const assignmentId = assignments[patient.id];
+
+    deleteDoctorPatient(assignmentId)
+      .then(() => {
+        window.alert(`Assignment removed for Patient: ${patient.username}`);
+        setAssignments((prev) => {
+          const updatedAssignments = { ...prev };
+          delete updatedAssignments[patient.id];
+          return updatedAssignments;
+        });
+      })
+      .catch((error) => {
+        console.error('Failed to remove assignment:', error);
+        window.alert('Failed to remove assignment. Please try again.');
+      });
   };
 
   // Show loading state while fetching data
@@ -123,12 +164,21 @@ export default function AssignPatientsPage() {
           {patients.map((patient) => (
             <tr key={patient.id}>
               <td>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => assignPatient(patient)}
-                >
-                  Assign to Doctor
-                </button>
+                {assignments[patient.id] ? (
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => removeAssignment(patient)}
+                  >
+                    Remove Assignment
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => assignPatient(patient)}
+                  >
+                    Assign to Doctor
+                  </button>
+                )}
               </td>
               <td>
                 <img
