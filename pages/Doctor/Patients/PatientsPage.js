@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react/button-has-type */
 import React, { useState, useEffect } from 'react';
@@ -5,60 +6,35 @@ import Table from 'react-bootstrap/Table';
 import { useAuth } from '../../../utils/userContext';
 import { getDoctorPatientByDoctorId } from '../../../API/doctorpatientData';
 import { getSingleUser } from '../../../API/userData';
+import doctorPatientsStyle from '../../../styles/Doctor/doctorPatients.module.css';
 
 export default function PatientsPage() {
-  const { user } = useAuth(); // Get the logged-in user
+  const { user } = useAuth();
   const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch the doctor's assigned patients
   const fetchPatients = async () => {
     try {
       const assignmentsMap = await getDoctorPatientByDoctorId(user.id);
-      console.warn('Assignments Map:', assignmentsMap); // Log the full assignmentsMap
+      if (!assignmentsMap || typeof assignmentsMap !== 'object') return;
 
-      // Ensure assignmentsMap is an object, not null/undefined
-      if (!assignmentsMap || typeof assignmentsMap !== 'object') {
-        console.error('Invalid assignmentsMap format or empty data');
-        return;
-      }
-
-      // Create an array of promises that fetch each patient based on their patientId (key in the map)
       const patientList = await Promise.all(
         Object.keys(assignmentsMap).map(async (patientId) => {
-          // eslint-disable-next-line no-unused-vars
-          const doctorPatientId = assignmentsMap[patientId]; // The value in assignmentsMap is doctorPatientId
-
-          if (patientId) {
-            try {
-              // Fetch patient details by patientId
-              const patient = await getSingleUser(patientId); // Get the full patient object
-              if (patient) {
-                return patient; // Return the full patient object if found
-              }
-              console.error(`No patient data found for ID: ${patientId}`);
-              return null; // Return null if no patient data is found
-            } catch (error) {
-              console.error(`Error fetching patient data for ID: ${patientId}`, error);
-              return null; // Return null in case of error
-            }
-          } else {
-            console.error(`No valid patientId in assignment for key: ${patientId}`);
-            return null; // Return null if there's no valid patientId
+          if (!patientId) return null;
+          try {
+            const patient = await getSingleUser(patientId);
+            return patient || null;
+          } catch {
+            return null;
           }
         }),
       );
 
-      // Filter out any null values (in case there were errors or no data)
-      const filteredPatientList = patientList.filter((patient) => patient !== null);
-
-      console.warn('Filtered Patient List:', filteredPatientList); // Log the filtered patient list
-
-      // Update the state with the filtered patient list
+      const filteredPatientList = patientList.filter((p) => p !== null);
       setPatients(filteredPatientList);
-      setFilteredPatients(filteredPatientList); // Initialize filtered patients
+      setFilteredPatients(filteredPatientList);
     } catch (error) {
       console.error('Error fetching patients:', error);
     } finally {
@@ -66,83 +42,75 @@ export default function PatientsPage() {
     }
   };
 
-  // Handle search input changes
+  useEffect(() => {
+    if (user) fetchPatients();
+  }, [user]);
+
   const handleSearchInputChange = (e) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
-    const filtered = patients.filter((patient) => patient.username.toLowerCase().includes(query)
-      || patient.email.toLowerCase().includes(query));
+    const filtered = patients.filter(
+      (p) => p.username.toLowerCase().includes(query)
+        || p.email.toLowerCase().includes(query),
+    );
     setFilteredPatients(filtered);
   };
 
-  useEffect(() => {
-    if (user) {
-      fetchPatients();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-
-  // Log the filteredPatients whenever it changes
-  useEffect(() => {
-    console.warn('Updated filteredPatients:', filteredPatients);
-  }, [filteredPatients]);
-
-  if (loading) {
-    return <h1>Loading...</h1>;
-  }
+  if (loading) return <h1>Loading...</h1>;
 
   return (
-    <div>
-      <h1>Assigned Patients</h1>
+    <div className={doctorPatientsStyle.container}>
+      <h1 className={doctorPatientsStyle.title}>Assigned Patients</h1>
 
-      {/* Search Bar */}
       <input
         type="text"
         placeholder="Search patients..."
         value={searchQuery}
         onChange={handleSearchInputChange}
-        style={{ marginBottom: '20px', padding: '10px', width: '100%' }}
+        className={doctorPatientsStyle.searchInput}
       />
 
-      {/* Display a message if no filtered patients are found */}
       {filteredPatients.length === 0 && searchQuery && (
-        <p>No patients found matching {searchQuery}</p>
+        <p className={doctorPatientsStyle.noResults}>
+          No patients found matching "{searchQuery}"
+        </p>
       )}
 
-      {/* Patients Table */}
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Profile Picture</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredPatients.map((patient) => (
-            <tr key={patient.id}>
-              <td>
-                <img
-                  src={patient.image_url}
-                  alt="Patient Profile"
-                  style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-                />
-              </td>
-              <td>{patient.username}</td>
-              <td>{patient.email}</td>
-              <td>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => console.warn(`route to ${patient.id}`)}
-                >
-                  View Profile
-                </button>
-              </td>
+      <div className={doctorPatientsStyle.tableWrapper}>
+        <Table striped bordered hover className={doctorPatientsStyle.table}>
+          <thead>
+            <tr>
+              <th>Profile Picture</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {filteredPatients.map((patient) => (
+              <tr key={patient.id}>
+                <td>
+                  <img
+                    src={patient.image_url}
+                    alt="Patient Profile"
+                    className={doctorPatientsStyle.profileImage}
+                  />
+                </td>
+                <td>{patient.username}</td>
+                <td>{patient.email}</td>
+                <td>
+                  <button
+                    className={`btn btn-primary ${doctorPatientsStyle.actionButton}`}
+                    onClick={() => console.warn(`route to ${patient.id}`)}
+                  >
+                    View Profile
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
     </div>
   );
 }
