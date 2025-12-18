@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Table from 'react-bootstrap/Table';
 import { useAuth } from '../../utils/userContext';
 import { getOtherUsers, getUsersWithSearch, updateUser } from '../../API/userData';
+import doctorDesignationStyle from '../../styles/Admin/doctorDesignation.module.css';
 
 export default function DoctorDesignationPage() {
   const { user } = useAuth(); // Logged-in user context
@@ -65,7 +66,6 @@ export default function DoctorDesignationPage() {
 
     try {
       await updateUser(updatedUser); // Update the user in the database
-      // Update the local state with the new role
       setUsers((prevUsers) => prevUsers.map((u) => (u.id === updatedUser.id ? { ...u, role: updatedUser.role } : u)));
     } catch (error) {
       console.error('Error updating user role:', error);
@@ -75,7 +75,7 @@ export default function DoctorDesignationPage() {
   // Guard clause for `user` being null
   if (!user) {
     return (
-      <div>
+      <div className={doctorDesignationStyle.container}>
         <h1>You are not logged in!</h1>
       </div>
     );
@@ -84,57 +84,62 @@ export default function DoctorDesignationPage() {
   // Show loading state while users are being fetched
   if (loading) {
     return (
-      <div>
+      <div className={doctorDesignationStyle.container}>
         <h1>Loading...</h1>
       </div>
     );
   }
 
   return (
-    <div>
-      <h1>Doctor Designation Page</h1>
-      <h2>Welcome, Admin {user.username}!</h2>
+    <div className={doctorDesignationStyle.container}>
+      <h1 className={doctorDesignationStyle.title}>Doctor Designation Page</h1>
+      <h2 className={doctorDesignationStyle.subtitle}>Welcome, Admin {user.username}!</h2>
+
       <input
         type="text"
         placeholder="Search users..."
         value={searchQuery}
         onChange={handleSearchInputChange}
+        className={doctorDesignationStyle.searchInput}
       />
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Action</th>
-            <th>Profile Picture</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Role</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((userData) => (
-            <tr key={userData.id}>
-              <td>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => toggleRole(userData)}
-                >
-                  {userData.role === 'doctor' ? 'Demote to Patient' : 'Promote to Doctor'}
-                </button>
-              </td>
-              <td>
-                <img
-                  src={userData.image_url}
-                  alt="Profile"
-                  style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-                />
-              </td>
-              <td>{userData.username}</td>
-              <td>{userData.email}</td>
-              <td>{userData.role}</td>
+
+      <div className={doctorDesignationStyle.tableWrapper}>
+        <Table striped bordered hover className={doctorDesignationStyle.table}>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Profile Picture</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {users.map((userData) => (
+              <tr key={userData.id}>
+                <td>
+                  <button
+                    className={`btn btn-primary ${doctorDesignationStyle.actionButton}`}
+                    onClick={() => toggleRole(userData)}
+                  >
+                    {userData.role === 'doctor' ? 'Demote to Patient' : 'Promote to Doctor'}
+                  </button>
+                </td>
+                <td>
+                  <img
+                    src={userData.image_url}
+                    alt="Profile"
+                    className={doctorDesignationStyle.profileImage}
+                  />
+                </td>
+                <td>{userData.username}</td>
+                <td>{userData.email}</td>
+                <td>{userData.role}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
     </div>
   );
 }
