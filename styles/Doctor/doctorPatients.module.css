@@ -1,0 +1,92 @@
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.noResults {
+  margin-bottom: 1rem;
+  color: #555;
+}
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  min-width: 600px;
+}
+
+.profileImage {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.actionButton {
+  font-size: 1rem;
+  padding: 0.5rem 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .profileImage {
+    width: 40px;
+    height: 40px;
+  }
+
+  .actionButton {
+    font-size: 0.9rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .searchInput {
+    max-width: 100%;
+    font-size: 0.9rem;
+  }
+
+  .table {
+    min-width: 500px;
+  }
+}
+
+@media (max-width: 576px) {
+  .profileImage {
+    width: 35px;
+    height: 35px;
+  }
+
+  .actionButton {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .table {
+    min-width: 450px;
+  }
+}
