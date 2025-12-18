@@ -12,9 +12,7 @@ import { useAuth } from '../utils/userContext';
 export default function NavBar() {
   const { user } = useAuth();
 
-  // Determine which OffCanvas to render
   let OffCanvasComponent = OffCanvas;
-
   if (user?.admin) {
     OffCanvasComponent = ADMINOffCanvas;
   } else if (user?.role === 'doctor') {
@@ -23,28 +21,13 @@ export default function NavBar() {
 
   return (
     <>
-      <nav className="navbar navbar-expand-md">
-        <div className="container-fluid">
-          <Link passHref href="/">
-            <h1 className="NavBar-Title">HealthPortal</h1>
-          </Link>
-
-          {/* Mobile menu toggle */}
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="offcanvas"
-            data-bs-target="#mainOffcanvas"
-            aria-controls="mainOffcanvas"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon" />
-          </button>
-        </div>
-      </nav>
-
-      {/* OffCanvas MUST live outside the navbar collapse */}
-      <OffCanvasComponent id="mainOffcanvas" placement="end" name="Menu" />
+      <div className="nav-bar-div">
+        <Link href="/" passHref>
+          <h1 className="NavBar-Title">HealthPortal</h1>
+        </Link>
+        {/* OffCanvas lives outside navbar */}
+        <OffCanvasComponent id="mainOffcanvas" placement="end" name="Menu" />
+      </div>
     </>
   );
 }

@@ -125,3 +125,9 @@ body {
    lg: 1024px  - laptops
    xl: 1280px  - desktops
    ========================= */
+.nav-bar-div {
+  display: flex;
+  align-items: center;           /* vertically centers content */
+  justify-content: space-between; /* pushes items to opposite ends */
+  padding: 0.5rem 1rem;
+}
