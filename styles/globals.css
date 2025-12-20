@@ -131,3 +131,7 @@ body {
   justify-content: space-between; /* pushes items to opposite ends */
   padding: 0.5rem 1rem;
 }
+/* Off Canvas Style */
+.off-canvas-logo{
+  width: 10%;
+}
