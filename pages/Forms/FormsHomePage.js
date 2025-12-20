@@ -3,25 +3,28 @@ import { Tab, Tabs } from 'react-bootstrap';
 import { useAuth } from '../../utils/userContext';
 import PatientIntakeForm from '../../components/Forms/PatientIntakeForm';
 import { getPatientIntakeForm } from '../../API/patientIntakeFormData';
+import PatientAllergyForm from '../../components/Forms/PatientAllergyForm';
+import { getPatientAllergyForm } from '../../API/patientallergyFormData';
 
 export default function FormsHomePage() {
   const { user } = useAuth();
-  const [existingForm, setExistingForm] = useState(null);
+  const [existingIntakeForm, setExistingIntakeForm] = useState(null);
+  const [existingAllergyForm, setExistingAllergyForm] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      // Fetch the existing form for the logged-in user
+    if (user?.id) {
+      setLoading(true);
+      // Fetch intake form
       getPatientIntakeForm(user.id)
-        .then((form) => {
-          setExistingForm(form); // Save the form data if it exists
-        })
-        .catch((error) => {
-          console.error('Error fetching patient intake form:', error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+        .then((form) => setExistingIntakeForm(form || null))
+        .catch((err) => console.error('Error fetching intake form:', err));
+
+      // Fetch allergy form
+      getPatientAllergyForm(user.id)
+        .then((form) => setExistingAllergyForm(form || null))
+        .catch((err) => console.error('Error fetching allergy form:', err))
+        .finally(() => setLoading(false));
     }
   }, [user]);
 
@@ -37,22 +40,21 @@ export default function FormsHomePage() {
     <div>
       <h1>Forms Home Page</h1>
       <h2>Welcome, {user.username}!</h2>
-      <div>
-        <Tabs defaultActiveKey="timelines" id="uncontrolled-tab-example">
-          <Tab eventKey="intakeform" title="Intake Form">
-            <div>
-              {/* Pass the existing form data to the PatientIntakeForm */}
-              <PatientIntakeForm obj={existingForm} />
-            </div>
-          </Tab>
-          <Tab eventKey="allergiesform" title="Allergies Form">
-            <div>Allergies form</div>
-          </Tab>
-          <Tab eventKey="threads" title="Threads">
-            <div>Threads</div>
-          </Tab>
-        </Tabs>
-      </div>
+      <Tabs defaultActiveKey="intakeform" id="forms-tabs">
+        <Tab eventKey="intakeform" title="Intake Form">
+          <div>
+            <PatientIntakeForm obj={existingIntakeForm} />
+          </div>
+        </Tab>
+        <Tab eventKey="allergiesform" title="Allergies Form">
+          <div>
+            <PatientAllergyForm obj={existingAllergyForm} />
+          </div>
+        </Tab>
+        <Tab eventKey="threads" title="Threads">
+          <div>Threads</div>
+        </Tab>
+      </Tabs>
     </div>
   );
 }

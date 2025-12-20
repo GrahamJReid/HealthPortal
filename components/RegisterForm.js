@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable react/require-default-props */
 import React, { useEffect, useState } from 'react';
@@ -6,52 +7,42 @@ import { Button, Form } from 'react-bootstrap';
 import Head from 'next/head';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import PropTypes from 'prop-types';
-// eslint-disable-next-line no-unused-vars
-import { AuthenticationDetails, CognitoUser } from 'amazon-cognito-identity-js';
-// Cognito User Pool
+import UserPool from '../.UserPool';
 import { registerUser } from '../utils/auth';
 import awsCredentials from '../.awsCred';
-import UserPool from '../.UserPool';
-import { useAuth } from '../utils/userContext'; // Import the Auth context
+import { useAuth } from '../utils/userContext';
 
 const RegisterForm = ({ user }) => {
   const { setUser } = useAuth();
-  const router = useRouter(); // Access the setUser function from the context
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
-    username: user ? user.username : '',
-    email: user ? user.email : '',
+    username: user?.username || '',
+    email: user?.email || '',
     password: '',
     image: null,
-    uid: user?.uid || '',
   });
 
   useEffect(() => {
     if (user) {
-      setFormData({
+      setFormData((prev) => ({
+        ...prev,
         username: user.username,
         email: user.email,
         image_url: user.image_url,
         uid: user.uid,
-      });
+      }));
     }
   }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setFormData((prevState) => ({
-        ...prevState,
-        image: file,
-      }));
-    }
+    if (file) setFormData((prev) => ({ ...prev, image: file }));
   };
 
   const uploadImageToS3 = async (file) => {
@@ -71,8 +62,7 @@ const RegisterForm = ({ user }) => {
 
     try {
       const command = new PutObjectCommand(params);
-      // eslint-disable-next-line no-unused-vars
-      const response = await s3.send(command);
+      await s3.send(command);
       return `https://${params.Bucket}.s3.amazonaws.com/${params.Key}`;
     } catch (error) {
       console.error('Error uploading image to S3:', error);
@@ -83,66 +73,52 @@ const RegisterForm = ({ user }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Step 1: Signup with AWS Cognito
+    // 1️⃣ Signup with AWS Cognito
     UserPool.signUp(formData.email, formData.password, [], null, async (err, data) => {
       if (err) {
         console.error('Error signing up:', err);
-
-        // Handle Cognito-specific errors
         if (err.code === 'UsernameExistsException') {
-          window.alert('Email already exists. Please use a different email.');
-        } else if (err.code === 'InvalidPasswordException') {
-          if (err.message.includes('symbol')) {
-            window.alert('Password must contain symbol characters.');
-          } else if (err.message.includes('uppercase')) {
-            window.alert('Password must contain uppercase characters.');
-          } else if (err.message.includes('numeric')) {
-            window.alert('Password must contain numeric characters.');
-          } else {
-            window.alert('Invalid password. Please check the password policy.');
-          }
-        } else {
-          window.alert(`Error: ${err.message}`);
+          return window.alert('Email already exists. Use a different email.');
+        } if (err.code === 'InvalidPasswordException') {
+          return window.alert('Password does not meet policy requirements.');
         }
-        return;
+        return window.alert(`Error: ${err.message}`);
       }
 
-      console.warn('Cognito Signup successful:', data);
-
-      // Step 2: Proceed with additional form handling
-      let updatedImageUrl = formData.image_url;
-
+      // 2️⃣ Upload image to S3 if provided
+      let imageUrl = formData.image_url || '';
       if (formData.image) {
-        const awsImageUrl = await uploadImageToS3(formData.image);
-
-        if (awsImageUrl) {
-          updatedImageUrl = awsImageUrl;
-        }
+        const uploadedUrl = await uploadImageToS3(formData.image);
+        if (uploadedUrl) imageUrl = uploadedUrl;
       }
 
-      const userData = {
-        username: formData.username,
-        email: formData.email,
-        image_url: updatedImageUrl,
-        uid: data.userSub, // Cognito's unique user ID
-        role: 'patient',
-        admin: false,
-      };
+      // 3️⃣ Register the user in the backend
+      try {
+        const backendUser = await registerUser({
+          username: formData.username,
+          email: formData.email,
+          image_url: imageUrl,
+          uid: data.userSub, // Cognito UID
+          role: 'patient',
+          admin: false,
+        });
 
-      // Register the user in your database
-      await registerUser(userData);
-      console.warn('User registered:', userData);
+        // backendUser should include the numeric `id` from your DB
+        if (!backendUser || !backendUser.id) {
+          throw new Error('Backend did not return user ID.');
+        }
 
-      // Step 3: Store user data in sessionStorage
-      sessionStorage.setItem('user', JSON.stringify(userData)); // Save to sessionStorage
-      sessionStorage.setItem('userEmail', formData.email); // Optionally store the email
+        // 4️⃣ Set user in context and sessionStorage
+        setUser(backendUser);
+        sessionStorage.setItem('user', JSON.stringify(backendUser));
+        sessionStorage.setItem('userEmail', backendUser.email);
 
-      // Step 4: Set user in global state (context)
-      setUser(userData);
-
-      // Redirect or provide success feedback
-      window.alert('Signup successful!');
-      router.push('/User/UserProfilePage');
+        window.alert('Signup successful!');
+        router.push('/User/UserProfilePage');
+      } catch (backendErr) {
+        console.error('Error registering user in backend:', backendErr);
+        window.alert('There was an error completing your registration. Try again.');
+      }
     });
   };
 
@@ -186,11 +162,7 @@ const RegisterForm = ({ user }) => {
 
         <Form.Group className="mb-3">
           <Form.Label>Profile Image</Form.Label>
-          <Form.Control
-            type="file"
-            name="image"
-            onChange={handleFileChange}
-          />
+          <Form.Control type="file" name="image" onChange={handleFileChange} />
         </Form.Group>
 
         <Button variant="primary" type="submit">

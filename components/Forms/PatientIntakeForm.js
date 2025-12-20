@@ -71,18 +71,22 @@ function PatientIntakeForm({ obj }) {
 
     try {
       if (obj) {
-        // If editing, include the form's ID
         patientIntakeData.id = obj.id;
         await updatePatientIntakeForm(patientIntakeData);
       } else {
         await createPatientIntakeForm(patientIntakeData);
       }
-      window.warn('changes complete'); // Refresh page after submission
+
+      // Show a confirmation first
+      window.alert('Changes complete');
+
+      // Then reload the page
+      window.location.reload();
     } catch (error) {
       console.error('Error saving patient intake form:', error);
+      window.alert('Error saving form, check console.');
     } finally {
       setLoading(false);
-      window.alert('changes complete');
     }
   };
 
