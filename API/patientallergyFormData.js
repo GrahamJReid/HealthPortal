@@ -32,7 +32,7 @@ const createPatientAllergyForm = (payload) => new Promise((resolve, reject) => {
 });
 
 const updatePatientAllergyForm = (payload) => new Promise((resolve, reject) => {
-  fetch(`${clientCredentials.databaseURL}/patientallergyform/${payload.id}`, {
+  fetch(`${clientCredentials.databaseURL}/patientallergyform/${payload.patient}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
