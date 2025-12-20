@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/control-has-associated-label */
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable @next/next/no-img-element */
@@ -25,8 +26,23 @@ export default function NavBar() {
         <Link href="/" passHref>
           <h1 className="NavBar-Title">HealthPortal</h1>
         </Link>
-        {/* OffCanvas lives outside navbar */}
-        <OffCanvasComponent id="mainOffcanvas" placement="end" name="Menu" />
+
+        {/* Image acting as OffCanvas button */}
+        {/* <button
+          type="button"
+          className="offcanvas-button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#mainOffcanvas"
+          aria-controls="mainOffcanvas"
+        >
+          hey
+        </button> */}
+
+        <OffCanvasComponent
+          id="mainOffcanvas"
+          placement="end"
+          name="Menu"
+        />
       </div>
     </>
   );
